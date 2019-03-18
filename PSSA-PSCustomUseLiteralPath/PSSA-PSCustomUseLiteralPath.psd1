@@ -16,8 +16,9 @@
         PSData = @{
             Tags = @(
                 "DevOps",
-                "Security",
-                "Windows"
+                "lint",
+                "bestpractice",
+                "PSScriptAnalyzer"
             )
             LicenseUri = 'https://github.com/jborean93/PSSA-PSCustomUseLiteralPath/blob/master/LICENSE'
             ProjectUri = 'https://github.com/jborean93/PSSA-PSCustomUseLiteralPath'
