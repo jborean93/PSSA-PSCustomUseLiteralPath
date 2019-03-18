@@ -66,10 +66,10 @@ Function Measure-UseLiteralPath {
         }
         if ($command.CommandType -eq "Alias") {
             $command = $command.ResolvedCommand
-			if ($command -isnot [System.Management.Automation.CmdletInfo]) {
-				# Was not an alias for a cmdlet
-			    return
-			}
+            if ($command -isnot [System.Management.Automation.CmdletInfo]) {
+                # Was not an alias for a cmdlet
+                return
+            }
         }
 
         # Ignore the cmdlet if it does not contains both -Path and -LiteralPath

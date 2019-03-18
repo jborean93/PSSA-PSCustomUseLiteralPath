@@ -137,7 +137,7 @@ Once installed you can use the module with PSScriptAnalyzer like;
 $module = Import-Module -Name PSSA-PSCustomUseLiteralPath -PassThru
 $rule_path = Join-Path -Path $module.ModuleBase -ChildPath $module.RootModule
 
-Invoke-ScriptAnalyzer -Path C:\temp\win_get_url.ps1 -CustomRulePath $rule_path
+Invoke-ScriptAnalyzer -Path C:\temp\ps_script.ps1 -CustomRulePath $rule_path
 ```
 
 
