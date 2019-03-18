@@ -123,7 +123,7 @@ Describe "$module_name PS$ps_version tests" {
                 $sb = {
                     testalias $path
                 }
-    
+
                 $actual = @(Measure-UseLiteralPath -ScriptBlock $sb.Ast)
                 $actual.Length | Should -Be 0
             } finally {
@@ -138,7 +138,7 @@ Describe "$module_name PS$ps_version tests" {
                 $sb = {
                     testalias2 $path
                 }
-    
+
                 $actual = @(Measure-UseLiteralPath -ScriptBlock $sb.Ast)
                 $actual.Length | Should -Be 1
                 $actual[0].Message | Should -Be $expected_rule_message
