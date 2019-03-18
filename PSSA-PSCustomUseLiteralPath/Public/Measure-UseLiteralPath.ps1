@@ -59,13 +59,17 @@ Function Measure-UseLiteralPath {
         }
 
         # Get the cmdlet info, resolve the alias if it is one
-        $command = Get-Command -Name $Ast.GetCommandName() -ErrorAction SilentlyContinue
+        $command = Get-Command -Name $Ast.GetCommandName() -CommandType Alias, Cmdlet -ErrorAction SilentlyContinue
         if ($null -eq $command) {
             # Not a known/imported cmdlet, cannot check for violations
             return
         }
         if ($command.CommandType -eq "Alias") {
             $command = $command.ResolvedCommand
+			if ($command -isnot [System.Management.Automation.CmdletInfo]) {
+				# Was not an alias for a cmdlet
+			    return
+			}
         }
 
         # Ignore the cmdlet if it does not contains both -Path and -LiteralPath

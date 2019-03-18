@@ -117,6 +117,40 @@ Describe "$module_name PS$ps_version tests" {
             $actual[1].Extent.Text | Should -Be 'gci -Path $path'
         }
 
+        It "Using an alias that does not point to a cmdlet" {
+            New-Alias -Name testalias -Value whoami.exe -Scope Global
+            try {
+                $sb = {
+                    testalias $path
+                }
+    
+                $actual = @(Measure-UseLiteralPath -ScriptBlock $sb.Ast)
+                $actual.Length | Should -Be 0
+            } finally {
+                Remove-Item -Path Alias:testalias
+            }
+        }
+
+        It "Using nested alias" {
+            New-Alias -Name testalias1 -Value Get-Item -Scope Global
+            New-Alias -Name testalias2 -Value testalias1 -Scope Global
+            try {
+                $sb = {
+                    testalias2 $path
+                }
+    
+                $actual = @(Measure-UseLiteralPath -ScriptBlock $sb.Ast)
+                $actual.Length | Should -Be 1
+                $actual[0].Message | Should -Be $expected_rule_message
+                $actual[0].RuleName | Should -Be $expected_rule_name
+                $actual[0].Severity | Should -be $expected_rule_severity
+                $actual[0].Extent.Text | Should -Be 'testalias2 $path'
+            } finally {
+                Remove-Item -Path Alias:testalias1
+                Remove-Item -Path Alias:testalias2
+            }
+        }
+
         It "Doesn't fail when encountering a dot or amphersand source command" {
             $sb = {
                 Test-Path -literalpath $path
