@@ -100,13 +100,7 @@ Function Measure-UseLiteralPath {
             } elseif ($element -is [System.Management.Automation.Language.CommandParameterAst]) {
                 $used_parameters.Add($element.ParameterName)
                 $param_value = $true
-            } elseif ($element -is [System.Management.Automation.Language.VariableExpressionAst]) {
-                if ($param_value) {
-                    $param_value = $false
-                } else {
-                    $used_parameters.Add("position parameter")
-                }
-            } elseif ($element -is [System.Management.Automation.Language.StringConstantExpressionAst]) {
+            } else {
                 if ($param_value) {
                     $param_value = $false
                 } else {

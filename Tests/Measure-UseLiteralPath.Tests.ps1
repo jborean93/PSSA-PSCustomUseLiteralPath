@@ -511,6 +511,25 @@ C:\Path
             $actual[5].Extent.Text | Should -Be 'Get-ChildItem -Path "C:\Path"'
         }
 
+        It "Detects cmdlet with variable elements" {
+            $sb = {
+                Get-Item $variable.key
+                Get-Item -Path $variable.key
+                Get-Item -LiteralPath $variable.key
+
+                Get-Item ([System.IO.Path]::GetFullPath("some path"))
+                Get-Item -Path ([System.IO.Path]::GetFullPath("some path"))
+                Get-Item -LiteralPath ([System.IO.Path]::GetFullPath("some path"))
+
+                Get-Item $variable["key"]
+                Get-Item -Path $variable["key"]
+                Get-Item -LiteralPath $variable["key"]
+            }
+
+            $actual = @(Measure-UseLiteralPath -ScriptBlockAst $sb.Ast)
+            $actual.Length | Should -Be 6
+        }
+
         It "Does not detect cmdlets that have a pipeline input" {
             $sb = {
                 Get-Item -LiteralPath "C:\path" | Remove-Item -Force
@@ -520,7 +539,6 @@ C:\Path
             $actual.Length | Should -Be 0
         }
 
-        <#
         Describe "Mocked Resolve-SplatVariable tests" {
             Mock Resolve-SplatVariable {
                 $ast = $args[1]
@@ -557,6 +575,5 @@ C:\Path
                 { Measure-UseLiteralPath -ScriptBlockAst $sb.Ast } | Should -Throw
             }
         }
-        #>
     }
 }
