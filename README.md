@@ -76,6 +76,7 @@ Get-item @hash
 * The analyser won't detect a splatted params if the right side of the equals operator is not a hash literal, e.g. `$hash1 = $hash2 + $hash3` but the `+=` operators works
 * Variables are not scope aware
 * Splat variables initialised by `New-Object` are not tracked
+* Cmdlets that have have a pipeline input like `Remove-Item` in `Get-Item -LiteralPath $path | Remove-Item` will not be detected
 
 ### Example
 

@@ -12,7 +12,7 @@ if ($env:APPVEYOR_REPO_BRANCH -and $env:APPVEYOR_REPO_BRANCH -notlike "master") 
 
 $ps_version = $PSVersionTable.PSVersion.Major
 $module_name = $MyInvocation.MyCommand.Name.Replace(".Tests.ps1", "")
-$repo_name = (Get-ChildItem -Path $PSScriptRoot\.. -Directory -Exclude @("Tests")).Name
+$repo_name = (Get-ChildItem -Path $PSScriptRoot\.. -Directory -Exclude @(".git", "Tests")).Name
 Import-Module -Name $PSScriptRoot\..\$repo_name -Force
 
 $expected_rule_message = 'Use the explicit -LiteralPath parameter name instead of -Path'
@@ -462,6 +462,65 @@ Describe "$module_name PS$ps_version tests" {
             $actual.Length | Should -Be 0
         }
 
+        It "Detects cmdlet with string constant var" {
+            $sb = {
+                Get-ChildItem C:\Path
+                Get-ChildItem 'C:\Path'
+                Get-ChildItem "C:\Path"
+                Get-ChildItem @"
+C:\Path
+"@
+                Get-ChildItem @'
+C:\Path
+'@
+                Get-ChildItem -Path "C:\Path"
+            }
+            $nl = [System.Environment]::NewLine
+
+            $actual = @(Measure-UseLiteralPath -ScriptBlockAst $sb.Ast)
+            $actual.Length | Should -Be 6
+
+            $actual[0].Message | Should -Be $expected_rule_message
+            $actual[0].RuleName | Should -Be $expected_rule_name
+            $actual[0].Severity | Should -be $expected_rule_severity
+            $actual[0].Extent.Text | Should -Be 'Get-ChildItem C:\Path'
+
+            $actual[1].Message | Should -Be $expected_rule_message
+            $actual[1].RuleName | Should -Be $expected_rule_name
+            $actual[1].Severity | Should -be $expected_rule_severity
+            $actual[1].Extent.Text | Should -Be 'Get-ChildItem ''C:\Path'''
+
+            $actual[2].Message | Should -Be $expected_rule_message
+            $actual[2].RuleName | Should -Be $expected_rule_name
+            $actual[2].Severity | Should -be $expected_rule_severity
+            $actual[2].Extent.Text | Should -Be 'Get-ChildItem "C:\Path"'
+
+            $actual[3].Message | Should -Be $expected_rule_message
+            $actual[3].RuleName | Should -Be $expected_rule_name
+            $actual[3].Severity | Should -be $expected_rule_severity
+            $actual[3].Extent.Text | Should -Be ('Get-ChildItem @"' + $nl + 'C:\Path' + $nl + '"@')
+
+            $actual[4].Message | Should -Be $expected_rule_message
+            $actual[4].RuleName | Should -Be $expected_rule_name
+            $actual[4].Severity | Should -be $expected_rule_severity
+            $actual[4].Extent.Text | Should -Be ('Get-ChildItem @''' + $nl + 'C:\Path' + $nl + '''@')
+
+            $actual[5].Message | Should -Be $expected_rule_message
+            $actual[5].RuleName | Should -Be $expected_rule_name
+            $actual[5].Severity | Should -be $expected_rule_severity
+            $actual[5].Extent.Text | Should -Be 'Get-ChildItem -Path "C:\Path"'
+        }
+
+        It "Does not detect cmdlets that have a pipeline input" {
+            $sb = {
+                Get-Item -LiteralPath "C:\path" | Remove-Item -Force
+            }
+
+            $actual = @(Measure-UseLiteralPath -ScriptBlockAst $sb.Ast)
+            $actual.Length | Should -Be 0
+        }
+
+        <#
         Describe "Mocked Resolve-SplatVariable tests" {
             Mock Resolve-SplatVariable {
                 $ast = $args[1]
@@ -489,7 +548,7 @@ Describe "$module_name PS$ps_version tests" {
         Describe "Mocked Confirm-ParameterSetMatch" {
             Mock Confirm-ParameterSetMatch {
                 throw "fail"
-            } -ModuleName PSSA-PSCustomUseLiteralPath
+            } -ModuleName $repo_name
 
             It "Throw terminating error on failure" {
                 $sb = {
@@ -498,5 +557,6 @@ Describe "$module_name PS$ps_version tests" {
                 { Measure-UseLiteralPath -ScriptBlockAst $sb.Ast } | Should -Throw
             }
         }
+        #>
     }
 }

@@ -56,6 +56,9 @@ Function Measure-UseLiteralPath {
         } elseif ($Ast.InvocationOperator -ne "Unknown") {
             # Was invocated with '.' or '&', we will ignore these
             return
+        } elseif ($Ast.Parent -is [System.Management.Automation.Language.PipelineAst] -and $Ast.Parent.PipelineElements[0] -ne $Ast) {
+            # We don't support analysing pipeline intput into the cmdlet
+            return
         }
 
         # Get the cmdlet info, resolve the alias if it is one
@@ -80,7 +83,7 @@ Function Measure-UseLiteralPath {
         # Expand any splatted vars and keep a list of each parameter used
         $used_parameters = [System.Collections.Generic.List`1[Object]]@()
         $param_value = $false
-        foreach ($element in $Ast.CommandElements) {
+        foreach ($element in $Ast.CommandElements[1..$Ast.CommandElements.Count]) {  # Skip cmdlet declaration
             if ($element -is [System.Management.Automation.Language.VariableExpressionAst] -and $element.Splatted) {
                 $var_name = $element.VariablePath.UserPath
                 if ($hash_vars.ContainsKey($var_name)) {
@@ -98,6 +101,12 @@ Function Measure-UseLiteralPath {
                 $used_parameters.Add($element.ParameterName)
                 $param_value = $true
             } elseif ($element -is [System.Management.Automation.Language.VariableExpressionAst]) {
+                if ($param_value) {
+                    $param_value = $false
+                } else {
+                    $used_parameters.Add("position parameter")
+                }
+            } elseif ($element -is [System.Management.Automation.Language.StringConstantExpressionAst]) {
                 if ($param_value) {
                     $param_value = $false
                 } else {

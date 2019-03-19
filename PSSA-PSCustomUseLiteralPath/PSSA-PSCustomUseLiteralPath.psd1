@@ -3,7 +3,7 @@
 
 @{
     RootModule = 'PSSA-PSCustomUseLiteralPath.psm1'
-    ModuleVersion = '0.1.0'
+    ModuleVersion = '0.1.1'
     GUID = '7c633146-989a-4a37-bc16-1f29a17be3db'
     Author = 'Jordan Borean'
     Copyright = 'Copyright (c) 2019 by Jordan Borean, Red Hat, licensed under MIT.'
